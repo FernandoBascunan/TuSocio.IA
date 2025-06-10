@@ -1,0 +1,62 @@
+/* Fondo completo de la página */
+.form-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #F8F1F1; /* Celeste */
+
+}
+
+/* Tarjeta de inicio de sesión */
+.form-content {
+  width: 90%;
+  max-width: 400px;
+  padding: 24px;
+  background-color: #F8F1F1; /* Crema */
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Título */
+.form-content h1 {
+  text-align: center;
+  color: #225599; /* Azul fuerte */
+  margin-bottom: 24px;
+}
+
+/* Enlace recuperar contraseña */
+.form-content a {
+  color: #5C8374; /* Verde grisáceo */
+  text-decoration: none;
+  font-size: 14px;
+  display: block;
+  margin-top: 8px;
+  margin-bottom: 16px;
+  text-align: right;
+}
+ion-toolbar {
+  --background: #5C8374 !important;
+  --color: #ffffff !important;
+}
+
+.form-content a:hover {
+  text-decoration: underline;
+}
+
+/* Inputs */
+.form-content ion-item {
+  --background: #ffffff;
+  --highlight-color-focused: #225599;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+/* Botones */
+ion-button {
+  --background: #225599; /* Azul fuerte */
+  --background-activated: #0A2647;
+  --color: #ffffff;
+  font-weight: bold;
+  border-radius: 12px;
+  margin-top: 8px;
+}

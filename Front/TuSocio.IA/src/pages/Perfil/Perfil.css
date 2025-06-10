@@ -1,0 +1,72 @@
+/* Asegura que la grilla ocupe toda la pantalla */
+.main-grid {
+  height: 100vh;
+}
+
+/* Sidebar que ocupa toda la altura disponible */
+.sidebar {
+  background-color: #5C8374;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+
+  /* Fijar ancho */
+  width: 100px;
+  flex: 0 0 100px;
+  max-width: 100px;
+
+  /* Para mantener posición en scroll */
+  position: sticky;
+  top: 0;
+}
+.avatar {
+  font-size: 200px;
+  margin-left:-125px ;
+  margin-top: 4rem;
+}
+
+.user-info {
+  text-align: center;
+  margin-top:12rem;
+  margin-bottom: 1rem;
+}
+
+.edit-button {
+  background-color: rgb(255, 255, 255);
+  color: rgb(0, 0, 0);
+  margin-bottom: 0.5rem;
+}
+
+.logout-button {
+  color: rgb(0, 0, 0);
+  font-weight: bold;
+}
+
+.content-section {
+  padding: 2rem;
+  overflow-y: auto;
+  height: 100vh;
+}
+
+.report-text {
+  text-align: center;
+  margin-top: 0.5rem;
+  color: #555;
+  
+}
+
+/* Aumenta separación entre botones */
+
+
+.textCenter{
+  text-align: center;
+  color: rgb(0, 0, 0)
+  ;
+}
+ion-toolbar {
+  --background: #000000 !important;
+  --color: #ffffff !important;
+}
+
