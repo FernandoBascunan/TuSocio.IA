@@ -145,7 +145,7 @@ const PerfilPage: React.FC = () => {
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonButton className='nav-button2' onClick={() => history.push('/Profile')}>Perfil</IonButton>
+          <IonButton className='nav-button2' onClick={() => history.push('/Profile')}>Inicio</IonButton>
           <IonButton className='nav-button' onClick={() => history.push('/Inventario')}>Inventario</IonButton>
         </IonToolbar>
       </IonHeader>
@@ -176,7 +176,7 @@ const PerfilPage: React.FC = () => {
                   ].map(({ label, key }) => (
                     <div key={key} style={{ marginBottom: '10px' }}>
                       <label style={{ fontWeight: 'bold' }}>{label}:</label><br />
-                      <IonInput
+                      <IonInput className='reInput'
                         value={userData[key as keyof UserData]}
                         onIonChange={(e) => handleInputChange(key as keyof UserData, e.detail.value!)}
                       />
@@ -193,7 +193,7 @@ const PerfilPage: React.FC = () => {
                     { label: 'Apellido', key: 'apellido' },
                   ].map(({ label, key }) => (
                     <div key={key} style={{ marginBottom: '10px' }}>
-                      <span style={{ fontWeight: 'bold' }}>{label}: </span>
+                      <span style={{ fontWeight: 'bold'}}>{label}: </span>
                       <span>{userData[key as keyof UserData]}</span>
                     </div>
                   ))}

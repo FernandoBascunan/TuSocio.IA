@@ -76,3 +76,8 @@ ion-toolbar {
 .reportButton{
   background-color: red;
 }
+
+.reInput{
+  background-color: #385c4e;
+  border-radius: 10px;
+}
