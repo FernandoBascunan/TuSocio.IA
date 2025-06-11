@@ -1,5 +1,6 @@
 /* Asegura que la grilla ocupe toda la pantalla */
 .main-grid {
+  background-color: #F8F1F1;
   height: 100vh;
 }
 
@@ -34,20 +35,16 @@
 }
 
 .edit-button {
-  background-color: rgb(255, 255, 255);
-  color: rgb(0, 0, 0);
   margin-bottom: 0.5rem;
-}
-
-.logout-button {
-  color: rgb(0, 0, 0);
-  font-weight: bold;
 }
 
 .content-section {
   padding: 2rem;
   overflow-y: auto;
   height: 100vh;
+  size: 12;
+  background-color: #F8F1F1; 
+  padding: 20px;
 }
 
 .report-text {
@@ -63,10 +60,19 @@
 .textCenter{
   text-align: center;
   color: rgb(0, 0, 0)
-  ;
+;
 }
 ion-toolbar {
-  --background: #000000 !important;
+  --background: #225599 !important;
   --color: #ffffff !important;
 }
 
+.nav-button2{
+  background-color: white;
+  color:#ffffff;
+  align-items: center;
+}
+
+.reportButton{
+  background-color: red;
+}

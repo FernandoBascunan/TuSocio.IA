@@ -26,7 +26,7 @@ const Producto: React.FC = () => {
     <IonPage>
           {/* Encabezado */}
           <IonHeader>
-            <IonToolbar color="dark">
+            <IonToolbar>
                 <IonButton className='nav-button2' onClick={() => history.push('/Profile')} disabled={loading}>Perfil</IonButton>
                 <IonButton className='nav-button' onClick={() => history.push('/Inventario')} disabled={loading}>Inventario</IonButton>
             </IonToolbar>

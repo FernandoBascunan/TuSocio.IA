@@ -1,0 +1,16 @@
+.contentAdd{
+  display: flex;
+  flex-direction: column;
+  align-items: center;      /* Centra horizontalmente */
+  justify-content: center;  /* Centra verticalmente */
+  height: 100vh;            /* Ocupa toda la altura de la pantalla */
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.center{
+    display: flex;
+    text-align: center;
+  align-items: center;      /* Centra horizontalmente */
+  justify-content: center;  /* Centra verticalmente */
+}

@@ -68,6 +68,7 @@ const IniciarSesion: React.FC = () => {
         body: JSON.stringify({ email: rutOrEmail, password }),
       });
 
+      console.log(response)
       const data = await response.json();
 
       if (!response.ok) {

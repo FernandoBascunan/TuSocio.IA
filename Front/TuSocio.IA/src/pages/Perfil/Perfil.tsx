@@ -148,7 +148,7 @@ const PerfilPage: React.FC = () => {
         </IonToolbar>
       </IonHeader>
 
-      <IonContent fullscreen>
+      <IonContent>
         <IonGrid className="main-grid">
           <IonRow>
             {/* Columna izquierda con datos del usuario */}
@@ -207,38 +207,25 @@ const PerfilPage: React.FC = () => {
                   <IonButton expand="block" onClick={handleGuardar} style={{ marginTop: '20px' }}>
                     Guardar Cambios
                   </IonButton>
-                  <IonButton
-                    expand="block"
-                    fill="clear"
-                    className="logout-button"
-                    onClick={() => setEditMode(false)}
-                    style={{ marginTop: '10px' }}
-                  >
+                  <IonButton onClick={() => setEditMode(false)}>
                     Cancelar
                   </IonButton>
                 </>
               )}
 
-              <IonButton
-                expand="block"
-                fill="clear"
-                className="logout-button"
-                onClick={handleCerrarSesion}
-                style={{ marginTop: '10px' }}
-              >
+              <IonButton onClick={handleCerrarSesion}>
                 Cerrar Sesión
               </IonButton>
             </IonCol>
 
             {/* Columna derecha solo con reportes */}
-            <IonCol size="12" sizeMd="8" className="content-section" style={{ backgroundColor: '#F8F1F1', padding: '20px' }}>
+            <IonCol className='content-section'>
               <IonRow>
                 {Object.entries(titulos).map(([key, titulo]) => (
                   <IonCol size="12" sizeMd="6" key={key} className="textCenter" style={{ marginBottom: '20px' }}>
                     <h4>{titulo}</h4>
-                    <IonButton
+                    <IonButton className="reportButton"
                       expand="block"
-                      color="dark"
                       disabled={loadingReport}
                       onClick={() => handleDownloadReport(Number(key))}
                     >

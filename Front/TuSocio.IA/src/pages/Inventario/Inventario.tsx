@@ -73,11 +73,12 @@ const Inventario: React.FC = () => {
       </IonHeader>
 
       <IonContent>
-        <IonGrid>
+        <IonGrid className='colorWhite'>
           <IonRow>
-            <IonCol sizeMd="3" size="12" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-              <IonCard className="ia-chat-card">
-                <IonLabel><strong>IA Chat</strong></IonLabel>
+            <IonCol sizeMd="3" size="12" className='AAA'>
+              <IonLabel className="ia-chat-card">
+                <IonButton  className="addProducto" onClick={() => history.push('/addProducto')}>Agregar Producto</IonButton>
+                <strong>IA Chat</strong>
 
                 <div className="chat-area">
                   {chat.length === 0 && (
@@ -113,7 +114,7 @@ const Inventario: React.FC = () => {
                     Enviar
                   </IonButton>
                 </div>
-              </IonCard>
+              </IonLabel>
 
               <IonCard style={{ marginTop: '12px' }}>
                 <IonCardContent>
@@ -149,7 +150,7 @@ const Inventario: React.FC = () => {
 
             <IonCol sizeMd="9" size="12">
               {[1, 2, 3, 4].map(id => (
-                <IonCard key={id} button onClick={() => irAProducto(id)}>
+                <IonCard key={id} button onClick={() => irAProducto(id)} className='card'>
                   <IonCardContent>
                     <IonRow className="ion-align-items-center">
                       <IonCol size="2" className="ion-text-center">

@@ -22,8 +22,9 @@ const connection = mysql.createConnection({
 //Login
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
-const Rut = email;
+  const Rut = email;
 
+  console.log(req.body)
   if (!Rut || !password) {
     return res.status(400).json({ error: 'Rut o correo y contraseña son requeridos' });
   }
@@ -43,12 +44,14 @@ const Rut = email;
       return res.status(401).json({ error: 'Email o contraseña incorrectos' });
     }
 
+    
     const user = results[0];
 
-    try {
+    console.log(user)
+    try { 
       const isPasswordValid = await bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
-        return res.status(401).json({ error: 'Email o contraseña incorrectos' });
+        return res.status(401).json({ error: 'error compare' });
       }
 
       const token = jwt.sign(
@@ -75,7 +78,7 @@ const Rut = email;
       });
 
     } catch (error) {
-      res.status(500).json({ error: 'Error durante la verificación' });
+      res.status(500).json({ error});
     }
   });
 });

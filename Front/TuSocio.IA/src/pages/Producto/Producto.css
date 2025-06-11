@@ -1,0 +1,15 @@
+.nav-button {
+  background-color: white;
+  margin-left: 21rem;
+   --background: transparent;
+  --box-shadow: none;
+  --border: none;
+}
+.nav-button2 {
+  background-color: white;
+  margin-right: 3rem;
+  margin-left: 1rem;
+  --background:transparent ;
+  --box-shadow: none;
+  --border: none;
+}

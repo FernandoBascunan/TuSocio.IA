@@ -3,6 +3,7 @@
   flex-direction: column;
   height: 100%;
   padding: 10px;
+  background-color:#1e1e1e;
 }
 .chat-area {
   height: 300px; /* o la altura que prefieras */
@@ -10,7 +11,7 @@
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 6px;
-  background: #fff;
+  background: #F8F1F1;
 }
 
 .chat-message {
@@ -36,12 +37,12 @@
 }
 
 .bubble.user {
-  background-color: #007bff;
-  color: white;
+  background-color: #F8F1F1;
+  color: F8F1F1;
 }
 
 .bubble.ia {
-  background-color: #e4e6eb;
+  background-color: #F8F1F1;
   color: black;
 }
 
@@ -52,18 +53,43 @@
 
 .chat-input {
   flex: 1;
+  margin-top: 5px;
+  border-radius: 10px;
+  background-color: #F8F1F1;
+  color: black;
 }
 .nav-button {
-
+  background-color: F8F1F1;
   margin-left: 21rem;
    --background: transparent;
   --box-shadow: none;
   --border: none;
 }
 .nav-button2 {
+  background-color: F8F1F1;
   margin-right: 3rem;
   margin-left: 1rem;
   --background:transparent ;
   --box-shadow: none;
   --border: none;
 }
+
+.AAA{ 
+  display: flex;
+  flex-direction: column;
+  height: 100%; 
+  background-color: #1e1e1e;
+ }
+
+ .colorWhite{
+  background-color: white;
+ }
+
+ .card{
+  background-color: #7FCDFF;
+  color: black;
+ }
+
+ .addProducto{
+  margin-bottom: 20px;
+ }
