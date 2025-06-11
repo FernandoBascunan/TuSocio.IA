@@ -14,9 +14,10 @@ const { ChartJSNodeCanvas } = require('chartjs-node-canvas');
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const { PythonShell } = require('python-shell');
+const fetch = require('node-fetch'); // Asegúrate de tenerlo importado arriba
 
 
-require('dotenv').config();
+
 const SECRET = process.env.JWT_SECRET;
 
 const passwordResetTokens = new Map();
@@ -235,22 +236,35 @@ app.post('/api/chat', async (req, res) => {
   const { message } = req.body;
 
   try {
-    const response = await fetch('http://localhost:11434/v1/chat/completions', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+      },
       body: JSON.stringify({
-        model: 'llama2',
-        messages: [ { role: 'system', content: 'Eres un asistente que responde únicamente en español.' },{ role: 'user', content: message }],
-      }),
+        model: 'gpt-3.5-turbo', // gratuito con clave de OpenAI
+        messages: [
+          { role: 'system', content: 'Eres un asistente que responde únicamente en español.' },
+          { role: 'user', content: message }
+        ],
+        temperature: 0.7
+      })
     });
 
     const data = await response.json();
-    const answer = data.choices[0].message.content;
 
+    if (data.error) {
+      console.error('OpenAI error:', data.error);
+      return res.status(500).json({ respuesta: 'Error al contactar con OpenAI.' });
+    }
+
+    const answer = data.choices[0].message.content;
     res.json({ respuesta: answer });
+
   } catch (error) {
-    console.error('Error en backend con Ollama:', error);
-    res.json({ respuesta: 'Error al contactar con la IA.' });
+    console.error('Error en backend con OpenAI:', error);
+    res.status(500).json({ respuesta: 'Error al contactar con la IA.' });
   }
 });
 
