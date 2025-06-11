@@ -9,13 +9,21 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 require('dotenv').config();
+const crypto = require('crypto');
+const PDFDocument = require('pdfkit');
+const { PythonShell } = require('python-shell');
+
+require('dotenv').config();
+const SECRET = process.env.JWT_SECRET;
+
+const passwordResetTokens = new Map();
 
 
 const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: '',
-  database: 'TuSocio.IA2.0'
+  database: 'TuSocio.IA'
 });
 
 
@@ -172,6 +180,52 @@ app.put('/api/usuario/modificar', (req, res) => {
   });
 });
 
+//Recuperar Contraseña
+app.post('/api/recuperar-password', (req, res) => {
+  const { email } = req.body;
+
+  if (!email) return res.status(400).json({ message: 'Correo es requerido' });
+
+  connection.query('SELECT * FROM empresa WHERE correoPyme = ?', [email], (err, results) => {
+    if (err || results.length === 0) {
+      return res.status(400).json({ message: 'Correo no registrado' });
+    }
+
+    const token = crypto.randomBytes(20).toString('hex');
+    passwordResetTokens.set(token, email);
+
+    const resetUrl = `http://localhost:8100/reset-password/${token}`; // Cliente
+
+    console.log(`Enlace de recuperación enviado: ${resetUrl}`);
+
+    // En producción: aquí deberías enviar el correo real usando nodemailer
+    res.json({ message: 'Correo de recuperación enviado (ver consola)' });
+  });
+});
+
+//Restablecer Contraseña
+app.post('/api/reset-password', async (req, res) => {
+  const { token, newPassword } = req.body;
+  const email = passwordResetTokens.get(token);
+
+  if (!email) return res.status(400).json({ message: 'Token inválido o expirado' });
+
+  const regex = /^[a-zA-Z0-9]{8,12}$/;
+  if (!regex.test(newPassword)) return res.status(400).json({ message: 'Formato de contraseña inválido' });
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  connection.query(
+    'UPDATE empresa SET password = ? WHERE correoPyme = ?',
+    [hashedPassword, email],
+    (err, result) => {
+      if (err) return res.status(500).json({ message: 'Error actualizando contraseña' });
+
+      passwordResetTokens.delete(token);
+      res.json({ message: 'Contraseña actualizada exitosamente' });
+    }
+  );
+});
 
 
 app.post('/api/chat', async (req, res) => {
@@ -200,4 +254,204 @@ app.post('/api/chat', async (req, res) => {
 const PORT = 3001;
 app.listen(PORT, () => {
   console.log(`Servidor backend corriendo en puerto ${PORT}`);
+});
+
+//Reportes
+
+function createTablePDF(headers, data, title, res) {
+  const doc = new PDFDocument({ margin: 40, size: 'A4' });
+  res.setHeader('Content-Type', 'application/pdf');
+  doc.pipe(res);
+
+  doc.fontSize(18).text(title, { align: 'center' }).moveDown(1.5);
+
+  const startX = 50;
+  let y = 100;
+  const rowHeight = 25;
+  const colWidth = 500 / headers.length;
+
+  doc.fontSize(12).font('Helvetica-Bold');
+
+  // Dibujar encabezado
+  headers.forEach((header, i) => {
+    doc
+      .rect(startX + i * colWidth, y, colWidth, rowHeight)
+      .stroke()
+      .text(header.toUpperCase(), startX + i * colWidth + 5, y + 7, {
+        width: colWidth - 10,
+        align: 'left',
+      });
+  });
+
+  y += rowHeight;
+  doc.font('Helvetica');
+
+  // Dibujar filas
+  data.forEach(row => {
+    headers.forEach((key, i) => {
+      doc
+        .rect(startX + i * colWidth, y, colWidth, rowHeight)
+        .stroke()
+        .text(String(row[key] ?? ''), startX + i * colWidth + 5, y + 7, {
+          width: colWidth - 10,
+          align: 'left',
+        });
+    });
+    y += rowHeight;
+
+    // Salto de página si se pasa
+    if (y + rowHeight > doc.page.height - 50) {
+      doc.addPage();
+      y = 100;
+    }
+  });
+
+  doc.end();
+}
+app.get('/api/reportes/1', (req, res) => {
+  const query = `
+    SELECT 
+      DATE_FORMAT(fechaVenta, '%Y-%m') AS mes,
+      SUM(valorTotal) AS totalVentas
+    FROM ventas
+    GROUP BY mes
+    ORDER BY mes DESC
+  `;
+
+  connection.query(query, (err, results) => {
+    if (err) return res.status(500).json({ error: 'Error al generar reporte de ventas' });
+
+    createTablePDF(['mes', 'totalVentas'], results, 'Informe de Ventas Mensuales', res);
+  });
+});
+app.get('/api/reportes/2', (req, res) => {
+  const query = `
+    SELECT 
+      p.idProducto,
+      p.nombreProducto,
+      p.tipoProducto,
+      COUNT(i.idProducto) AS stock
+    FROM inventario i
+    JOIN producto p ON i.idProducto = p.idProducto
+    GROUP BY p.idProducto
+  `;
+
+  connection.query(query, (err, results) => {
+    if (err) return res.status(500).json({ error: 'Error al generar reporte de stock' });
+
+    createTablePDF(['idProducto', 'nombreProducto', 'tipoProducto', 'stock'], results, 'Reporte de Stock Actual', res);
+  });
+});
+app.get('/api/reportes/3', (req, res) => {
+  const query = `
+    SELECT 
+      (SELECT SUM(valorTotal) FROM ventas) AS ingresos,
+      (SELECT SUM(dv.cantidad * p.valorNeto) 
+         FROM detalleventa dv 
+         JOIN producto p ON dv.idProducto = p.idProducto
+      ) AS costoVentas,
+      ((SELECT SUM(valorTotal) FROM ventas) -
+       (SELECT SUM(dv.cantidad * p.valorNeto) 
+          FROM detalleventa dv 
+          JOIN producto p ON dv.idProducto = p.idProducto)) AS utilidad
+  `;
+
+  connection.query(query, (err, results) => {
+    if (err) return res.status(500).json({ error: 'Error al generar estado de resultados' });
+
+    const rows = [results[0]];
+    createTablePDF(['ingresos', 'costoVentas', 'utilidad'], rows, 'Estado de Resultados', res);
+  });
+});
+
+
+
+//Inventario
+
+app.get('/api/productos', (req, res) => {
+  connection.query('SELECT * FROM producto', (err, results) => {
+    if (err) return res.status(500).json({ error: 'Error al obtener productos' });
+    res.json(results);
+  });
+});
+
+app.delete('/api/productos/:id', (req, res) => {
+  connection.query('DELETE FROM producto WHERE idProducto = ?', [req.params.id], (err) => {
+    if (err) return res.status(500).json({ error: 'Error al eliminar producto' });
+    res.json({ message: 'Producto eliminado' });
+  });
+});
+
+app.put('/api/productos/:id', (req, res) => {
+  const data = req.body;
+  const id = req.params.id;
+
+  const query = `
+    UPDATE producto SET nombreProducto=?, valorNeto=?, tipoProducto=?, unidadMedida=?, fechaIngreso=?, fechaCaducidad=?
+    WHERE idProducto=?
+  `;
+
+  connection.query(query, [
+    data.nombreProducto, data.valorNeto, data.tipoProducto, data.unidadMedida, data.fechaIngreso, data.fechaCaducidad, id
+  ], (err) => {
+    if (err) return res.status(500).json({ error: 'Error al editar producto' });
+    res.json({ message: 'Producto actualizado' });
+  });
+});
+
+const autenticarToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // "Bearer <token>"
+
+  if (!token) return res.status(401).json({ mensaje: 'Token no proporcionado' });
+
+  jwt.verify(token, SECRET, (err, decoded) => {
+    if (err) return res.status(403).json({ mensaje: 'Token inválido' });
+    req.user = decoded; // guarda el payload en req.user
+    next();
+  });
+};
+
+
+app.post('/api/productos', autenticarToken, async (req, res) => {
+  const {
+    idProducto,
+    nombreProducto,
+    valorNeto,
+    tipoProducto,
+    unidadMedida,
+    fechaIngreso,
+    fechaCaducidad
+  } = req.body;
+
+  const rutEmpresa = req.user.rut; // Asumimos que en el token el campo es "rut"
+
+  if (!rutEmpresa) {
+    return res.status(400).json({ mensaje: 'Rut empresa no encontrado en token' });
+  }
+
+  try {
+    const connection = await mysql.createConnection(dbConfig);
+
+    // Inserta en tabla producto
+    await connection.execute(
+      `INSERT INTO producto 
+       (idProducto, nombreProducto, valorNeto, tipoProducto, unidadMedida, fechaIngreso, fechaCaducidad) 
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [idProducto, nombreProducto, valorNeto, tipoProducto, unidadMedida, fechaIngreso, fechaCaducidad]
+    );
+
+    // Inserta en tabla inventario con rutEmpresa
+    await connection.execute(
+      `INSERT INTO inventario (RutEmpresa, idProducto) VALUES (?, ?)`,
+      [rutEmpresa, idProducto]
+    );
+
+    await connection.end();
+
+    res.json({ mensaje: 'Producto agregado correctamente' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ mensaje: 'Error interno del servidor' });
+  }
 });

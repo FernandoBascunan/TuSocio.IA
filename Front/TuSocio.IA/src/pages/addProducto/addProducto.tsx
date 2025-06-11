@@ -7,38 +7,49 @@ import { useHistory } from 'react-router-dom';
 
 const AddProducto: React.FC = () => {
   const [producto, setProducto] = useState({
-    idProducto: '',
-    nombreProducto: '',
-    valorNeto: '',
-    tipoProducto: '',
-    unidadMedida: '',
-    fechaIngreso: '',
-    fechaCaducidad: ''
-  });
+  idProducto: 0,
+  nombreProducto: '',
+  valorNeto: 0,
+  tipoProducto: '',
+  unidadMedida: 0,
+  fechaIngreso: '',
+  fechaCaducidad: ''
+});
 
   const history = useHistory();
+
 
   const handleChange = (key: string, value: string) => {
     setProducto(prev => ({ ...prev, [key]: value }));
   };
 
   const handleSubmit = async () => {
-    try {
-      const res = await fetch('http://localhost:3001/api/productos', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(producto)
-      });
+  const token = localStorage.getItem('token');
+  if (!token) {
+    alert('No hay sesión activa');
+    return;
+  }
 
-      if (!res.ok) throw new Error('Error al agregar producto');
+  try {
+    const res = await fetch('http://localhost:3001/api/productos', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(producto),
+    });
 
-      alert('Producto agregado con éxito');
-      history.push('/Inventario');
-    } catch (error) {
-      console.error(error);
-      alert('Hubo un error al agregar el producto');
-    }
-  };
+    if (!res.ok) throw new Error('Error al agregar producto');
+
+    alert('Producto agregado con éxito');
+    history.push('/Inventario');
+  } catch (error) {
+    console.error(error);
+    alert('Hubo un error al agregar el producto');
+  }
+};
+
 
   return (
     <IonPage>
@@ -95,15 +106,22 @@ const AddProducto: React.FC = () => {
         <IonItem>
           <IonLabel position="stacked">Fecha de Ingreso</IonLabel>
           <IonDatetime
+            value={producto.fechaIngreso}
+            onIonChange={e => handleChange('fechaIngreso', String(e.detail.value ?? ''))}
           />
         </IonItem>
 
         <IonItem>
           <IonLabel position="stacked">Fecha de Caducidad</IonLabel>
           <IonDatetime
+            value={producto.fechaCaducidad}
+            onIonChange={e => handleChange('fechaCaducidad', String(e.detail.value ?? ''))}
           />
         </IonItem>
 
+        <IonButton expand="block" onClick={() => history.push('/Inventario')}>
+          Volver
+        </IonButton>
         <IonButton expand="block" onClick={handleSubmit}>
           Guardar Producto
         </IonButton>

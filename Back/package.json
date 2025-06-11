@@ -8,7 +8,9 @@
     "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^4.0.0",
     "mysql": "^2.18.1",
-    "node-fetch": "^2.7.0"
+    "node-fetch": "^2.7.0",
+    "pdfkit": "^0.17.1",
+    "python-shell": "^5.0.0"
   },
   "devDependencies": {
     "@types/jwt-decode": "^2.2.1"

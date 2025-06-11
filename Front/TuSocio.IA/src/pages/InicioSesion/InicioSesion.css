@@ -11,7 +11,8 @@
 .form-content {
   width: 90%;
   max-width: 400px;
-  padding: 24px;
+  padding: 23px;
+  margin-top: 25%;
   background-color: #F8F1F1; /* Crema */
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -34,22 +35,14 @@
   margin-bottom: 16px;
   text-align: right;
 }
-ion-toolbar {
-  --background: #5C8374 !important;
-  --color: #ffffff !important;
-}
+
 
 .form-content a:hover {
   text-decoration: underline;
 }
 
 /* Inputs */
-.form-content ion-item {
-  --background: #ffffff;
-  --highlight-color-focused: #225599;
-  border-radius: 8px;
-  margin-bottom: 16px;
-}
+
 
 /* Botones */
 ion-button {

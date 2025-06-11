@@ -15,8 +15,6 @@ import {
   IonItem,
   IonSelect,
   IonSelectOption,
-  IonAvatar,
-  IonImg,
   IonButton,
   IonInput
 } from '@ionic/react';
@@ -27,10 +25,35 @@ const Inventario: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [input, setInput] = useState('');
   const [chat, setChat] = useState<{from: 'user' | 'ia'; text: string}[]>([]);
-
+  const [productos, setProductos] = useState<Producto[]>([]);
   const history = useHistory();
   const chatEndRef = useRef<HTMLDivElement>(null);
+const generarPrediccion = async () => {
+  console.log('Clic detectado');
+  const res = await fetch('http://localhost:3001/api/prediccion');
+  console.log('Respuesta recibida', res.status);
+};
+  type Producto = {
+  idProducto: number;
+  nombreProducto: string;
+  tipoProducto: string;
+  valorNeto: number;
+  unidadMedida: string;
+  fechaIngreso: string;
+  fechaCaducidad: string;
+};
+useEffect(() => {
+  fetch('http://localhost:3001/api/productos')
+    .then(res => res.json())
+    .then(setProductos)
+    .catch(err => console.error(err));
+}, []);
 
+const eliminarProducto = async (id: number) => {
+  if (!window.confirm('¿Eliminar este producto?')) return;
+  await fetch(`http://localhost:3001/api/productos/${id}`, { method: 'DELETE' });
+  setProductos(prev => prev.filter(p => p.idProducto !== id));
+};
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chat]);
@@ -76,8 +99,12 @@ const Inventario: React.FC = () => {
         <IonGrid className='colorWhite'>
           <IonRow>
             <IonCol sizeMd="3" size="12" className='AAA'>
+                <IonButton expand="block" onClick={generarPrediccion}>
+                  Generar Predicción de Demanda
+                </IonButton>
               <IonLabel className="ia-chat-card">
                 <IonButton  className="addProducto" onClick={() => history.push('/addProducto')}>Agregar Producto</IonButton>
+                
                 <strong>IA Chat</strong>
 
                 <div className="chat-area">
@@ -149,27 +176,23 @@ const Inventario: React.FC = () => {
             </IonCol>
 
             <IonCol sizeMd="9" size="12">
-              {[1, 2, 3, 4].map(id => (
-                <IonCard key={id} button onClick={() => irAProducto(id)} className='card'>
-                  <IonCardContent>
-                    <IonRow className="ion-align-items-center">
-                      <IonCol size="2" className="ion-text-center">
-                        <IonAvatar>
-                          <IonImg src="https://via.placeholder.com/64" alt="Producto" />
-                        </IonAvatar>
-                      </IonCol>
-                      <IonCol size="8">
-                        <IonText><strong>Producto {id}</strong></IonText>
-                        <p>Fecha de último pedido</p>
-                        <p>Descripción del producto</p>
-                      </IonCol>
-                      <IonCol size="2" className="ion-text-end">
-                        <IonText>Stock en cantidad</IonText>
-                      </IonCol>
-                    </IonRow>
-                  </IonCardContent>
-                </IonCard>
-              ))}
+              {productos.map(producto => (
+                  <IonCard key={producto.idProducto} className='card'>
+                    <IonCardContent>
+                      <IonRow className="ion-align-items-center">
+                        <IonCol size="8">
+                          <IonText><strong>{producto.nombreProducto}</strong></IonText>
+                          <p>Tipo: {producto.tipoProducto}</p>
+                          <p>Valor: ${producto.valorNeto}</p>
+                        </IonCol>
+                        <IonCol size="4" className="ion-text-end">
+                          <IonButton onClick={() => irAProducto(producto.idProducto)}>Ver</IonButton>
+                          <IonButton color="danger" onClick={() => eliminarProducto(producto.idProducto)}>Eliminar</IonButton>
+                        </IonCol>
+                      </IonRow>
+                    </IonCardContent>
+                  </IonCard>
+                ))}
             </IonCol>
           </IonRow>
         </IonGrid>
