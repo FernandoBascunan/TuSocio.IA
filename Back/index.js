@@ -1,5 +1,5 @@
 const express = require('express');
-const mysql = require('mysql');
+const mysql = require('mysql2');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
@@ -10,8 +10,11 @@ app.use(cors());
 app.use(bodyParser.json());
 require('dotenv').config();
 const crypto = require('crypto');
+const { ChartJSNodeCanvas } = require('chartjs-node-canvas');
 const PDFDocument = require('pdfkit');
+const fs = require('fs');
 const { PythonShell } = require('python-shell');
+
 
 require('dotenv').config();
 const SECRET = process.env.JWT_SECRET;
@@ -23,7 +26,7 @@ const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: '',
-  database: 'TuSocio.IA'
+  database: 'TuSocio.IA2.0'
 });
 
 
@@ -364,6 +367,78 @@ app.get('/api/reportes/3', (req, res) => {
   });
 });
 
+app.get('/api/reportes/4', async (req, res) => {
+  const query = `
+    SELECT 
+      (SELECT SUM(valorTotal) FROM ventas) AS ingresos,
+      (SELECT SUM(dv.cantidad * p.valorNeto) 
+         FROM detalleventa dv 
+         JOIN producto p ON dv.idProducto = p.idProducto
+      ) AS costoVentas,
+      ((SELECT SUM(valorTotal) FROM ventas) -
+       (SELECT SUM(dv.cantidad * p.valorNeto) 
+          FROM detalleventa dv 
+          JOIN producto p ON dv.idProducto = p.idProducto)) AS utilidad
+  `;
+
+  connection.query(query, async (err, results) => {
+    if (err) return res.status(500).json({ error: 'Error al generar estado de resultados' });
+
+    const data = results[0];
+    const ingresos = data.ingresos || 0;
+    const costoVentas = data.costoVentas || 0;
+    const utilidad = data.utilidad || 0;
+
+    // Generar gráfico
+    const width = 600;
+    const height = 400;
+    const chartCanvas = new ChartJSNodeCanvas({ width, height });
+
+    const configuration = {
+      type: 'bar',
+      data: {
+        labels: ['Ingresos', 'Costo de Ventas', 'Utilidad'],
+        datasets: [{
+          label: 'Proyeccion de demanda',
+          data: [ingresos, costoVentas, utilidad],
+          backgroundColor: ['#4CAF50', '#F44336', '#2196F3']
+        }]
+      },
+      options: {
+        plugins: {
+          legend: {
+            display: false
+          }
+        }
+      }
+    };
+
+    const imageBuffer = await chartCanvas.renderToBuffer(configuration);
+
+    // Crear PDF
+    const doc = new PDFDocument();
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename=estado_resultados.pdf');
+
+    doc.fontSize(20).text('Proyeccion de demanda', { align: 'center' });
+    doc.moveDown();
+    doc.fontSize(14).text(`Ingresos: $${ingresos}`);
+    doc.text(`Costo de Ventas: $${costoVentas}`);
+    doc.text(`Utilidad: $${utilidad}`);
+    doc.moveDown();
+
+    doc.image(imageBuffer, {
+      fit: [500, 300],
+      align: 'center',
+      valign: 'center'
+    });
+
+    doc.end();
+    doc.pipe(res);
+  });
+});
+
+
 
 
 //Inventario
@@ -375,29 +450,63 @@ app.get('/api/productos', (req, res) => {
   });
 });
 
-app.delete('/api/productos/:id', (req, res) => {
-  connection.query('DELETE FROM producto WHERE idProducto = ?', [req.params.id], (err) => {
-    if (err) return res.status(500).json({ error: 'Error al eliminar producto' });
-    res.json({ message: 'Producto eliminado' });
-  });
+app.delete('/api/productos/:id', async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const connection = await mysql.createConnection({
+      host: 'localhost',
+      user: 'root',
+      password: '',
+      database: 'TuSocio.IA2.0'
+    });
+
+    // Elimina del inventario primero
+    await connection.execute(
+      'DELETE FROM inventario WHERE idProducto = ?',
+      [id]
+    );
+
+    // Ahora sí elimina el producto
+    await connection.execute(
+      'DELETE FROM producto WHERE idProducto = ?',
+      [id]
+    );
+
+    await connection.end();
+    res.json({ message: 'Producto eliminado correctamente' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al eliminar producto' });
+  }
 });
 
 app.put('/api/productos/:id', (req, res) => {
-  const data = req.body;
   const id = req.params.id;
+  const {
+    valorNeto,
+    tipoProducto,
+    unidadMedida,
+    fechaIngreso,
+    fechaCaducidad
+  } = req.body;
 
-  const query = `
-    UPDATE producto SET nombreProducto=?, valorNeto=?, tipoProducto=?, unidadMedida=?, fechaIngreso=?, fechaCaducidad=?
-    WHERE idProducto=?
+  const sql = `
+    UPDATE producto SET 
+      valorNeto = ?, 
+      tipoProducto = ?, 
+      unidadMedida = ?, 
+      fechaIngreso = ?, 
+      fechaCaducidad = ?
+    WHERE idProducto = ?
   `;
 
-  connection.query(query, [
-    data.nombreProducto, data.valorNeto, data.tipoProducto, data.unidadMedida, data.fechaIngreso, data.fechaCaducidad, id
-  ], (err) => {
-    if (err) return res.status(500).json({ error: 'Error al editar producto' });
-    res.json({ message: 'Producto actualizado' });
+  connection.query(sql, [valorNeto, tipoProducto, unidadMedida, fechaIngreso, fechaCaducidad, id], (err, result) => {
+    if (err) return res.status(500).json({ error: 'Error al actualizar producto' });
+    res.json({ message: 'Producto actualizado correctamente' });
   });
 });
+
 
 const autenticarToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -407,6 +516,7 @@ const autenticarToken = (req, res, next) => {
 
   jwt.verify(token, SECRET, (err, decoded) => {
     if (err) return res.status(403).json({ mensaje: 'Token inválido' });
+
     req.user = decoded; // guarda el payload en req.user
     next();
   });
@@ -424,14 +534,19 @@ app.post('/api/productos', autenticarToken, async (req, res) => {
     fechaCaducidad
   } = req.body;
 
-  const rutEmpresa = req.user.rut; // Asumimos que en el token el campo es "rut"
+  const rutEmpresa = req.user.id; // Asumimos que en el token el campo es "rut"
 
   if (!rutEmpresa) {
     return res.status(400).json({ mensaje: 'Rut empresa no encontrado en token' });
   }
 
   try {
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await mysql.createConnection({
+      host: 'localhost',
+      user: 'root',
+      password: '',
+      database: 'TuSocio.IA2.0'
+    });
 
     // Inserta en tabla producto
     await connection.execute(
@@ -454,4 +569,17 @@ app.post('/api/productos', autenticarToken, async (req, res) => {
     console.error(error);
     res.status(500).json({ mensaje: 'Error interno del servidor' });
   }
+});
+
+app.get('/api/productos/:id', (req, res) => {
+  const id = req.params.id;
+  connection.query(
+    'SELECT * FROM producto WHERE idProducto = ?',
+    [id],
+    (err, results) => {
+      if (err) return res.status(500).json({ error: 'Error al obtener producto' });
+      if (results.length === 0) return res.status(404).json({ error: 'Producto no encontrado' });
+      res.json(results[0]);
+    }
+  );
 });

@@ -104,12 +104,14 @@ const PerfilPage: React.FC = () => {
   const titulos: Record<number, string> = {
     1: "Ventas Mensuales",
     2: "Reporte de Stock",
-    3: "Estado de Resultados"
+    3: "Estado de Resultados",
+    4: "Proyeccion de demanda"
   };
   const descripciones: Record<number, string> = {
     1: "Reporte que muestra el total de ventas realizadas durante cada mes, permitiendo analizar el comportamiento de ingresos a lo largo del tiempo, identificar tendencias y tomar decisiones informadas para optimizar la estrategia comercial.",
     2: "Reporte que detalla el estado actual del inventario, incluyendo cantidades disponibles, productos más vendidos y aquellos con menor rotación, facilitando la gestión eficiente del stock.",
-    3: "Reporte financiero que resume los ingresos y gastos de la empresa, proporcionando una visión clara de la rentabilidad y sostenibilidad del negocio."
+    3: "Reporte financiero que resume los ingresos y gastos de la empresa, proporcionando una visión clara de la rentabilidad y sostenibilidad del negocio.",
+    4: "Reporte que estima cuánto se espera vender de un producto o servicio en un período futuro."
   };
 
   const handleDownloadReport = async (tipoReporte: number) => {

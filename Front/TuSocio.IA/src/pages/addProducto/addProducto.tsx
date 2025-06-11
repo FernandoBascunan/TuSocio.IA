@@ -45,7 +45,7 @@ const AddProducto: React.FC = () => {
     alert('Producto agregado con éxito');
     history.push('/Inventario');
   } catch (error) {
-    console.error(error);
+    console.log(error);
     alert('Hubo un error al agregar el producto');
   }
 };

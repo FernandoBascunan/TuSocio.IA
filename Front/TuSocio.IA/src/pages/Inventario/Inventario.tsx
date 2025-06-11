@@ -96,12 +96,9 @@ const eliminarProducto = async (id: number) => {
       </IonHeader>
 
       <IonContent>
-        <IonGrid className='colorWhite'>
+        <IonGrid>
           <IonRow>
             <IonCol sizeMd="3" size="12" className='AAA'>
-                <IonButton expand="block" onClick={generarPrediccion}>
-                  Generar Predicción de Demanda
-                </IonButton>
               <IonLabel className="ia-chat-card">
                 <IonButton  className="addProducto" onClick={() => history.push('/addProducto')}>Agregar Producto</IonButton>
                 
