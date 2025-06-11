@@ -9,13 +9,16 @@
     margin-bottom: 15px; 
   }
   
-  .form-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    padding: 10px; 
-  }
+.form-container {
+  display: flex;
+  flex-direction: column; /* ⬅️ Añade esto */
+  justify-content: flex-start; /* ⬅️ Cambia esto */
+  align-items: center;
+  min-height: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
   
   .form-content {
     background-color: white;
