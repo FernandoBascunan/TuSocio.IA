@@ -537,53 +537,61 @@ const autenticarToken = (req, res, next) => {
 };
 
 
+const pool = mysql.createPool({
+  host: 'localhost',
+  user: 'root',
+  password: '',
+  database: 'TuSocio.IA2.0',
+  connectionLimit: 10,
+  waitForConnections: true
+}).promise();
+
 app.post('/api/productos', autenticarToken, async (req, res) => {
   const {
-    idProducto,
     nombreProducto,
     valorNeto,
     tipoProducto,
     unidadMedida,
     fechaIngreso,
-    fechaCaducidad
+    fechaCaducidad,
+    stock = 0
   } = req.body;
 
-  const rutEmpresa = req.user.id; // Asumimos que en el token el campo es "rut"
+  const rutEmpresa = req.user.id;
+  if (!rutEmpresa) return res.status(400).json({ mensaje: 'Rut empresa no encontrado en token' });
 
-  if (!rutEmpresa) {
-    return res.status(400).json({ mensaje: 'Rut empresa no encontrado en token' });
-  }
-
+  let connection;
   try {
-    const connection = await mysql.createConnection({
-      host: 'localhost',
-      user: 'root',
-      password: '',
-      database: 'TuSocio.IA2.0'
-    });
+    connection = await pool.getConnection();   // ← devuelve conexión “promisificada”
+    await connection.beginTransaction();
 
-    // Inserta en tabla producto
+    // 1) Insertar producto
+    const [result] = await connection.execute(
+      `INSERT INTO producto
+         (nombreProducto, valorNeto, tipoProducto, unidadMedida, fechaIngreso, fechaCaducidad)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [nombreProducto, valorNeto, tipoProducto, unidadMedida, fechaIngreso, fechaCaducidad]
+    );
+    const idProducto = result.insertId;
+
+    // 2) Insertar inventario
     await connection.execute(
-      `INSERT INTO producto 
-       (idProducto, nombreProducto, valorNeto, tipoProducto, unidadMedida, fechaIngreso, fechaCaducidad) 
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [idProducto, nombreProducto, valorNeto, tipoProducto, unidadMedida, fechaIngreso, fechaCaducidad]
+      `INSERT INTO inventario (RutEmpresa, idProducto, cantidad)
+       VALUES (?, ?, ?)`,
+      [rutEmpresa, idProducto, stock]
     );
 
-    // Inserta en tabla inventario con rutEmpresa
-    await connection.execute(
-      `INSERT INTO inventario (RutEmpresa, idProducto) VALUES (?, ?)`,
-      [rutEmpresa, idProducto]
-    );
-
-    await connection.end();
-
-    res.json({ mensaje: 'Producto agregado correctamente' });
-  } catch (error) {
-    console.error(error);
+    await connection.commit();
+    res.json({ mensaje: 'Producto agregado correctamente', idProducto });
+  } catch (err) {
+    if (connection) await connection.rollback();
+    console.error(err);
     res.status(500).json({ mensaje: 'Error interno del servidor' });
+  } finally {
+    if (connection) connection.release();      // devuelve la conexión al pool
   }
 });
+
 
 app.get('/api/productos/:id', (req, res) => {
   const id = req.params.id;

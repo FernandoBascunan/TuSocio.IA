@@ -59,7 +59,7 @@
 
 .textCenter{
   text-align: center;
-  color: rgb(0, 0, 0)
+
 ;
 }
 ion-toolbar {
@@ -67,10 +67,13 @@ ion-toolbar {
   --color: #ffffff !important;
 }
 
-.nav-button2{
+.nav-button {
   background-color: white;
-  color:#ffffff;
-  align-items: center;
+  margin-left: 1rem;
+  margin-right: 5rem;
+   --background: transparent;
+  --box-shadow: none;
+  --border: none;
 }
 
 .reportButton{

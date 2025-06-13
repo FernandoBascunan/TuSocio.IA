@@ -90,7 +90,7 @@ const eliminarProducto = async (id: number) => {
     <IonPage>
       <IonHeader>
         <IonToolbar >
-          <IonButton className="nav-button2" onClick={() => history.push('/Profile')} disabled={loading}>Inicio</IonButton>
+          <IonButton className="nav-button" onClick={() => history.push('/Profile')} disabled={loading}>Inicio</IonButton>
           <IonButton className="nav-button" onClick={() => history.push('/Inventario')} disabled={loading}>Inventario</IonButton>
         </IonToolbar>
       </IonHeader>

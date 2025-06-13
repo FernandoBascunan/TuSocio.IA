@@ -145,13 +145,13 @@ const PerfilPage: React.FC = () => {
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonButton className='nav-button2' onClick={() => history.push('/Profile')}>Inicio</IonButton>
+          <IonButton className='nav-button' onClick={() => history.push('/Profile')}>Inicio</IonButton>
           <IonButton className='nav-button' onClick={() => history.push('/Inventario')}>Inventario</IonButton>
         </IonToolbar>
       </IonHeader>
 
       <IonContent>
-        <IonGrid className="main-grid">
+        <IonGrid >
           <IonRow>
             {/* Columna izquierda con datos del usuario */}
             <IonCol size="12" sizeMd="4" className="sidebar" style={{ paddingRight: '20px' }}>
@@ -202,7 +202,7 @@ const PerfilPage: React.FC = () => {
 
               {!editMode ? (
                 <IonButton expand="block" onClick={() => setEditMode(true)} style={{ marginTop: '20px' }}>
-                  Editar Perfil
+                  Gestion de cuenta
                 </IonButton>
               ) : (
                 <>
@@ -221,7 +221,7 @@ const PerfilPage: React.FC = () => {
             </IonCol>
 
             {/* Columna derecha solo con reportes */}
-            <IonCol className='content-section'>
+            <IonCol >
               <IonRow>
                 {Object.entries(titulos).map(([key, titulo]) => (
                   <IonCol size="12" sizeMd="6" key={key} className="textCenter" style={{ marginBottom: '20px' }}>

@@ -7,13 +7,13 @@ import { useHistory } from 'react-router-dom';
 
 const AddProducto: React.FC = () => {
   const [producto, setProducto] = useState({
-  idProducto: 0,
   nombreProducto: '',
   valorNeto: 0,
   tipoProducto: '',
   unidadMedida: 0,
   fechaIngreso: '',
-  fechaCaducidad: ''
+  fechaCaducidad: '',
+  cantidad: 0
 });
 
   const history = useHistory();
@@ -23,7 +23,7 @@ const AddProducto: React.FC = () => {
     setProducto(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleSubmit = async () => {
+const handleSubmit = async () => {
   const token = localStorage.getItem('token');
   if (!token) {
     alert('No hay sesión activa');
@@ -37,18 +37,28 @@ const AddProducto: React.FC = () => {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
-      body: JSON.stringify(producto),
+      body: JSON.stringify({
+        ...producto,
+        valorNeto: Number(producto.valorNeto),
+        unidadMedida: Number(producto.unidadMedida),
+        stock: Number(producto.cantidad || 0)  // esto lo usa el backend para la tabla inventario
+      }),
     });
 
-    if (!res.ok) throw new Error('Error al agregar producto');
+    if (!res.ok) {
+      const msg = await res.text();
+      throw new Error(`Error al agregar producto: ${msg}`);
+    }
 
     alert('Producto agregado con éxito');
     history.push('/Inventario');
   } catch (error) {
-    console.log(error);
+    console.log(error)
+    console.error(error);
     alert('Hubo un error al agregar el producto');
   }
 };
+
 
 
   return (
@@ -59,15 +69,6 @@ const AddProducto: React.FC = () => {
         </IonToolbar>
       </IonHeader>
       <IonContent className="contentAdd">
-
-        <IonItem className="center">
-          <IonLabel position="stacked">ID Producto</IonLabel>
-          <IonInput
-            type="number"
-            value={producto.idProducto}
-            onIonChange={e => handleChange('idProducto', e.detail.value!)}
-          />
-        </IonItem>
 
         <IonItem>
           <IonLabel position="stacked">Nombre</IonLabel>
@@ -100,6 +101,15 @@ const AddProducto: React.FC = () => {
             type="number"
             value={producto.unidadMedida}
             onIonChange={e => handleChange('unidadMedida', e.detail.value!)}
+          />
+        </IonItem>
+
+        <IonItem>
+          <IonLabel position="stacked">Cantidad Inicial</IonLabel>
+          <IonInput
+            type="number"
+            value={producto.cantidad}
+            onIonChange={e => handleChange('stock', e.detail.value!)}
           />
         </IonItem>
 
